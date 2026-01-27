@@ -59,6 +59,7 @@ const eduCardStyle = {
   marginBottom: "40px",
   overflow: "hidden"
 };
+const API_URL = "http://127.0.0.1:8000/institution/register";
 
 export default function Person() {
   const [eduInstitutionType, setEduInstitutionType] = useState("");
@@ -240,11 +241,87 @@ export default function Person() {
     setEduAddress({ country: "", state: "", district: "", city: "", area: "", pinCode: "" });
   };
 
-  const eduHandleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Submission Data:", { ...eduFormData, eduInstitutionType, eduAutonomousStatus, eduSelectedDegrees, eduSelectedDepartments, eduAddress });
-    alert("Form submitted successfully!");
+ const eduHandleSubmit = async (e) => {
+  e.preventDefault();
+
+  // 1️⃣ Build CLEAN & SEPARATED DATA
+  const payload = {
+    institutionInfo: {
+      institutionName: eduFormData.institutionName,
+      institutionType: eduInstitutionType,
+      autonomousStatus: eduAutonomousStatus,
+      yearEstablished: eduFormData.yearEstablished,
+      naacGrade: eduFormData.naacGrade,
+      officialEmail: eduFormData.officialEmail,
+      universityName: eduFormData.universityName,
+    },
+
+    academicInfo: {
+      degrees: eduSelectedDegrees,
+      departments: eduSelectedDepartments,
+    },
+
+    personalInfo: {
+      firstName: eduFormData.firstName,
+      lastName: eduFormData.lastName,
+      email: eduFormData.email,
+      phone: eduFormData.phone,
+      gender: eduFormData.gender,
+      designation: eduFormData.designation,
+    },
+
+    contacts: {
+      principal: {
+        name: eduFormData.principalName,
+        email: eduFormData.principalEmail,
+        phone: eduFormData.principalPhone,
+      },
+      academicCoordinator: {
+        name: eduFormData.academicCoordinatorName,
+        email: eduFormData.academicCoordinatorEmail,
+        phone: eduFormData.academicCoordinatorPhone,
+      },
+      placementHead: {
+        name: eduFormData.placementHeadName,
+        email: eduFormData.placementHeadEmail,
+        phone: eduFormData.placementHeadPhone,
+      },
+    },
+
+    address: eduAddress,
+
+    documents: eduUploadedFiles,
   };
+
+  // 2️⃣ Send to Backend
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/institution/register",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Submission failed");
+    }
+
+    alert("✅ Institution registered successfully");
+    console.log("Saved Data:", data);
+
+    eduHandleReset();
+
+  } catch (error) {
+    console.error("❌ Error:", error);
+    alert("❌ Submission failed. Check backend.");
+  }
+};
+
+
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
