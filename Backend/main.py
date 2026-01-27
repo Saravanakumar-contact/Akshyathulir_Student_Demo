@@ -17,8 +17,11 @@ app.add_middleware(
 
 @app.post("/institution/register")
 def register_institution(data: Institution):
-    institution_collection.insert_one(data.dict())
+    result = institution_collection.insert_one(data.dict())
+
     return {
         "status": "success",
+        "institution_id": str(result.inserted_id),
         "message": "Institution registered successfully"
     }
+

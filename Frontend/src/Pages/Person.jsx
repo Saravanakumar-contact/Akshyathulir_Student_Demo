@@ -241,73 +241,28 @@ export default function Person() {
     setEduAddress({ country: "", state: "", district: "", city: "", area: "", pinCode: "" });
   };
 
- const eduHandleSubmit = async (e) => {
+const eduHandleSubmit = async (e) => {
   e.preventDefault();
 
-  // 1️⃣ Build CLEAN & SEPARATED DATA
   const payload = {
-    institutionInfo: {
-      institutionName: eduFormData.institutionName,
-      institutionType: eduInstitutionType,
-      autonomousStatus: eduAutonomousStatus,
-      yearEstablished: eduFormData.yearEstablished,
-      naacGrade: eduFormData.naacGrade,
-      officialEmail: eduFormData.officialEmail,
-      universityName: eduFormData.universityName,
-    },
-
-    academicInfo: {
-      degrees: eduSelectedDegrees,
-      departments: eduSelectedDepartments,
-    },
-
-    personalInfo: {
-      firstName: eduFormData.firstName,
-      lastName: eduFormData.lastName,
-      email: eduFormData.email,
-      phone: eduFormData.phone,
-      gender: eduFormData.gender,
-      designation: eduFormData.designation,
-    },
-
-    contacts: {
-      principal: {
-        name: eduFormData.principalName,
-        email: eduFormData.principalEmail,
-        phone: eduFormData.principalPhone,
-      },
-      academicCoordinator: {
-        name: eduFormData.academicCoordinatorName,
-        email: eduFormData.academicCoordinatorEmail,
-        phone: eduFormData.academicCoordinatorPhone,
-      },
-      placementHead: {
-        name: eduFormData.placementHeadName,
-        email: eduFormData.placementHeadEmail,
-        phone: eduFormData.placementHeadPhone,
-      },
-    },
-
-    address: eduAddress,
-
-    documents: eduUploadedFiles,
+    name: eduFormData.institutionName,
+    email: eduFormData.officialEmail,
+    phone: eduFormData.phone,
+    address: `${eduAddress.area}, ${eduAddress.city}, ${eduAddress.district}, ${eduAddress.state}, ${eduAddress.country} - ${eduAddress.pinCode}`
   };
 
-  // 2️⃣ Send to Backend
   try {
-    const response = await fetch(
-      "http://127.0.0.1:8000/institution/register",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
-    );
+    const response = await fetch("http://127.0.0.1:8000/institution/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.detail || "Submission failed");
+      console.error("Backend error:", data);
+      throw new Error("Submission failed");
     }
 
     alert("✅ Institution registered successfully");
@@ -317,9 +272,12 @@ export default function Person() {
 
   } catch (error) {
     console.error("❌ Error:", error);
-    alert("❌ Submission failed. Check backend.");
+    alert("❌ Backend error. Check FastAPI logs.");
   }
 };
+
+
+
 
 
 
