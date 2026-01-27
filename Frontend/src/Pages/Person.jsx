@@ -245,36 +245,75 @@ const eduHandleSubmit = async (e) => {
   e.preventDefault();
 
   const payload = {
-    name: eduFormData.institutionName,
-    email: eduFormData.officialEmail,
+    institutionName: eduFormData.institutionName,
+    institutionType: eduInstitutionType,
+    yearEstablished: Number(eduFormData.yearEstablished),
+    naacGrade: eduFormData.naacGrade,
+    autonomousStatus: eduAutonomousStatus || null,
+    universityName: eduFormData.universityName || null,
+    officialEmail: eduFormData.officialEmail,
+
+    degrees: eduSelectedDegrees,
+    departments: eduSelectedDepartments,
+
+    firstName: eduFormData.firstName,
+    lastName: eduFormData.lastName,
+    email: eduFormData.email,
     phone: eduFormData.phone,
-    address: `${eduAddress.area}, ${eduAddress.city}, ${eduAddress.district}, ${eduAddress.state}, ${eduAddress.country} - ${eduAddress.pinCode}`
+    gender: eduFormData.gender,
+    designation: eduFormData.designation,
+
+    principal: {
+      name: eduFormData.principalName,
+      email: eduFormData.principalEmail,
+      phone: eduFormData.principalPhone
+    },
+
+    academicCoordinator: eduInstitutionType === "School"
+      ? {
+          name: eduFormData.academicCoordinatorName,
+          email: eduFormData.academicCoordinatorEmail,
+          phone: eduFormData.academicCoordinatorPhone
+        }
+      : null,
+
+    placementHead: eduInstitutionType !== "School"
+      ? {
+          name: eduFormData.placementHeadName,
+          email: eduFormData.placementHeadEmail,
+          phone: eduFormData.placementHeadPhone
+        }
+      : null,
+
+    address: eduAddress,
+
+    websiteUrl: eduFormData.websiteUrl,
+    linkedinUrl: eduFormData.linkedinUrl,
+    instagramUrl: eduFormData.instagramUrl || null,
+    facebookUrl: eduFormData.facebookUrl || null
   };
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/institution/register", {
+    const res = await fetch("http://127.0.0.1:8000/institution/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const data = await response.json();
+    const data = await res.json();
+    if (!res.ok) throw data;
 
-    if (!response.ok) {
-      console.error("Backend error:", data);
-      throw new Error("Submission failed");
-    }
-
-    alert("✅ Institution registered successfully");
-    console.log("Saved Data:", data);
+    alert("🔥 FULL DATA STORED SUCCESSFULLY");
+    console.log("Saved:", data);
 
     eduHandleReset();
 
-  } catch (error) {
-    console.error("❌ Error:", error);
-    alert("❌ Backend error. Check FastAPI logs.");
+  } catch (err) {
+    console.error("❌ Error:", err);
+    alert("❌ Backend validation failed");
   }
 };
+
 
 
 
