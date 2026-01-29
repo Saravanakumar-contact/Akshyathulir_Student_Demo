@@ -35,7 +35,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\TUF gaming\Desktop\Akshaya thulir\backend\venv"
+VIRTUAL_ENV="C:\Users\TUF gaming\OneDrive\Documents\GitHub\Akshyathulir_Student_Demo\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
