@@ -59,7 +59,6 @@ const eduCardStyle = {
   marginBottom: "40px",
   overflow: "hidden"
 };
-const API_URL = "http://127.0.0.1:8000/institution/register";
 
 export default function Person() {
   const [eduInstitutionType, setEduInstitutionType] = useState("");
@@ -81,6 +80,12 @@ export default function Person() {
     principalName: "",
     principalEmail: "",
     principalPhone: "",
+    vicePrincipalName: "",
+    vicePrincipalEmail: "",
+    vicePrincipalPhone: "",
+    ceoName: "",
+    ceoEmail: "",
+    ceoPhone: "",
     academicCoordinatorName: "",
     academicCoordinatorEmail: "",
     academicCoordinatorPhone: "",
@@ -110,11 +115,13 @@ export default function Person() {
   const [eduStateInput, setEduStateInput] = useState("");
   const [eduDistrictInput, setEduDistrictInput] = useState("");
   const [eduCityInput, setEduCityInput] = useState("");
+  const [eduSubmissionStatus, setEduSubmissionStatus] = useState("");
+  const [eduSubmissionMessage, setEduSubmissionMessage] = useState("");
 
   const eduHandleInputChange = (e) => {
     const { name, value } = e.target;
     setEduFormData((prev) => ({ ...prev, [name]: value }));
-  }; 
+  };
 
   useEffect(() => {
     const eduFetchCountries = async () => {
@@ -234,91 +241,96 @@ export default function Person() {
       institutionName: "", yearEstablished: "", naacGrade: "",
       officialEmail: "", universityName: "", gender: "",
       principalName: "", principalEmail: "", principalPhone: "",
+      vicePrincipalName: "", vicePrincipalEmail: "", vicePrincipalPhone: "",
+      ceoName: "", ceoEmail: "", ceoPhone: "",
       academicCoordinatorName: "", academicCoordinatorEmail: "", academicCoordinatorPhone: "",
       placementHeadName: "", placementHeadEmail: "", placementHeadPhone: "",
       websiteUrl: "", linkedinUrl: "", instagramUrl: "", facebookUrl: ""
     });
     setEduAddress({ country: "", state: "", district: "", city: "", area: "", pinCode: "" });
+    setEduSubmissionStatus("");
+    setEduSubmissionMessage("");
   };
 
-const eduHandleSubmit = async (e) => {
-  e.preventDefault();
+  const eduHandleSubmit = async (e) => {
+    e.preventDefault();
+    setEduSubmissionStatus("");
+    setEduSubmissionMessage("");
 
-  const payload = {
-    institutionName: eduFormData.institutionName,
-    institutionType: eduInstitutionType,
-    yearEstablished: Number(eduFormData.yearEstablished),
-    naacGrade: eduFormData.naacGrade,
-    autonomousStatus: eduAutonomousStatus || null,
-    universityName: eduFormData.universityName || null,
-    officialEmail: eduFormData.officialEmail,
-
-    degrees: eduSelectedDegrees,
-    departments: eduSelectedDepartments,
-
-    firstName: eduFormData.firstName,
-    lastName: eduFormData.lastName,
-    email: eduFormData.email,
-    phone: eduFormData.phone,
-    gender: eduFormData.gender,
-    designation: eduFormData.designation,
-
-    principal: {
-      name: eduFormData.principalName,
-      email: eduFormData.principalEmail,
-      phone: eduFormData.principalPhone
-    },
-
-    academicCoordinator: eduInstitutionType === "School"
-      ? {
+    const payload = {
+      institutionName: eduFormData.institutionName,
+      institutionType: eduInstitutionType,
+      autonomousStatus: eduAutonomousStatus,
+      yearEstablished: eduFormData.yearEstablished,
+      naacGrade: eduFormData.naacGrade,
+      officialEmail: eduFormData.officialEmail,
+      universityName: eduFormData.universityName,
+      degrees: eduSelectedDegrees,
+      departments: eduSelectedDepartments,
+      personalInfo: {
+        firstName: eduFormData.firstName,
+        lastName: eduFormData.lastName,
+        email: eduFormData.email,
+        phone: eduFormData.phone,
+        gender: eduFormData.gender,
+        designation: eduFormData.designation,
+      },
+      contacts: {
+        principal: {
+          name: eduFormData.principalName,
+          email: eduFormData.principalEmail,
+          phone: eduFormData.principalPhone,
+        },
+        vicePrincipal: {
+          name: eduFormData.vicePrincipalName,
+          email: eduFormData.vicePrincipalEmail,
+          phone: eduFormData.vicePrincipalPhone,
+        },
+        ceo: {
+          name: eduFormData.ceoName,
+          email: eduFormData.ceoEmail,
+          phone: eduFormData.ceoPhone,
+        },
+        academicCoordinator: {
           name: eduFormData.academicCoordinatorName,
           email: eduFormData.academicCoordinatorEmail,
-          phone: eduFormData.academicCoordinatorPhone
-        }
-      : null,
-
-    placementHead: eduInstitutionType !== "School"
-      ? {
+          phone: eduFormData.academicCoordinatorPhone,
+        },
+        placementHead: {
           name: eduFormData.placementHeadName,
           email: eduFormData.placementHeadEmail,
-          phone: eduFormData.placementHeadPhone
-        }
-      : null,
+          phone: eduFormData.placementHeadPhone,
+        },
+      },
+      address: eduAddress,
+      socialLinks: {
+        website: eduFormData.websiteUrl,
+        linkedin: eduFormData.linkedinUrl,
+        instagram: eduFormData.instagramUrl,
+        facebook: eduFormData.facebookUrl,
+      },
+    };
 
-    address: eduAddress,
+    try {
+      const res = await fetch("http://localhost:8000/api/institution/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    websiteUrl: eduFormData.websiteUrl,
-    linkedinUrl: eduFormData.linkedinUrl,
-    instagramUrl: eduFormData.instagramUrl || null,
-    facebookUrl: eduFormData.facebookUrl || null
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.detail || `HTTP error! status: ${res.status}`);
+      }
+
+      setEduSubmissionStatus("success");
+      setEduSubmissionMessage(result.message || "Registration submitted successfully!");
+    } catch (error) {
+      console.error("Submission error:", error);
+      setEduSubmissionStatus("error");
+      setEduSubmissionMessage("Submission failed: " + error.message);
+    }
   };
-
-  try {
-    const res = await fetch("http://127.0.0.1:8000/institution/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw data;
-
-    alert("🔥 FULL DATA STORED SUCCESSFULLY");
-    console.log("Saved:", data);
-
-    eduHandleReset();
-
-  } catch (err) {
-    console.error("❌ Error:", err);
-    alert("❌ Backend validation failed");
-  }
-};
-
-
-
-
-
-
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -530,6 +542,80 @@ const eduHandleSubmit = async (e) => {
                 />
               </Grid>
 
+              <Grid xs={12}>
+                <Typography variant="h6" sx={eduSubHeaderStyle}>
+                  Vice Principal Details
+                </Typography>
+              </Grid>
+
+              <Grid xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Vice Principal Name"
+                  name="vicePrincipalName"
+                  value={eduFormData.vicePrincipalName}
+                  onChange={eduHandleInputChange}
+                />
+              </Grid>
+
+              <Grid xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  name="vicePrincipalPhone"
+                  value={eduFormData.vicePrincipalPhone}
+                  onChange={eduHandleInputChange}
+                />
+              </Grid>
+
+              <Grid xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  type="email"
+                  label="Email Address"
+                  name="vicePrincipalEmail"
+                  value={eduFormData.vicePrincipalEmail}
+                  onChange={eduHandleInputChange}
+                />
+              </Grid>
+
+              <Grid xs={12}>
+                <Typography variant="h6" sx={eduSubHeaderStyle}>
+                  CEO Details
+                </Typography>
+              </Grid>
+
+              <Grid xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="CEO Name"
+                  name="ceoName"
+                  value={eduFormData.ceoName}
+                  onChange={eduHandleInputChange}
+                />
+              </Grid>
+
+              <Grid xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  name="ceoPhone"
+                  value={eduFormData.ceoPhone}
+                  onChange={eduHandleInputChange}
+                />
+              </Grid>
+
+              <Grid xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  type="email"
+                  label="Email Address"
+                  name="ceoEmail"
+                  value={eduFormData.ceoEmail}
+                  onChange={eduHandleInputChange}
+                />
+              </Grid>
+
               {eduInstitutionType === "School" ? (
                 <>
                   <Grid xs={12} sx={{ mt: 2 }}>
@@ -622,7 +708,7 @@ const eduHandleSubmit = async (e) => {
               <Grid xs={12} md={2}>
                 <Autocomplete
                   options={eduCountries}
-                  value={eduAddress.country}
+                  value={eduAddress.country || ""}
                   inputValue={eduCountryInput}
                   onInputChange={(event, newInputValue) => setEduCountryInput(newInputValue)}
                   onChange={(event, newValue) => {
@@ -630,6 +716,7 @@ const eduHandleSubmit = async (e) => {
                     setEduStateInput(""); setEduDistrictInput(""); setEduCityInput("");
                     eduHandleAddressChange("country", newValue, true);
                   }}
+                  isOptionEqualToValue={(option, value) => option === value || value === ""}
                   renderInput={(params) => <TextField {...params} label="Country" required />}
                 />
               </Grid>
@@ -638,7 +725,7 @@ const eduHandleSubmit = async (e) => {
                 <Autocomplete
                   disabled={!eduAddress.country || eduAddress.country.length === 0}
                   options={eduStates}
-                  value={eduAddress.state}
+                  value={eduAddress.state || ""}
                   inputValue={eduStateInput}
                   onInputChange={(event, newInputValue) => setEduStateInput(newInputValue)}
                   onChange={(event, newValue) => {
@@ -646,6 +733,7 @@ const eduHandleSubmit = async (e) => {
                     setEduDistrictInput(""); setEduCityInput("");
                     eduHandleAddressChange("state", newValue, true);
                   }}
+                  isOptionEqualToValue={(option, value) => option === value || value === ""}
                   renderInput={(params) => <TextField {...params} label="State" required />}
                 />
               </Grid>
@@ -655,7 +743,7 @@ const eduHandleSubmit = async (e) => {
                   freeSolo
                   disabled={!eduAddress.state || eduAddress.state.length === 0}
                   options={eduDistricts}
-                  value={eduAddress.district}
+                  value={eduAddress.district || ""}
                   inputValue={eduDistrictInput}
                   onInputChange={(event, newInputValue) => setEduDistrictInput(newInputValue)}
                   onChange={(event, newValue) => {
@@ -663,6 +751,7 @@ const eduHandleSubmit = async (e) => {
                     setEduCityInput("");
                     eduHandleAddressChange("district", newValue, true);
                   }}
+                  isOptionEqualToValue={(option, value) => option === value || value === ""}
                   renderInput={(params) => <TextField {...params} label="District" required />}
                 />
               </Grid>
@@ -826,13 +915,27 @@ const eduHandleSubmit = async (e) => {
           </Box>
         </Paper>
 
-        <Box sx={{ display: 'flex', gap: 2, mb: 10 }}>
-          <Button type="submit" variant="contained" size="large" sx={{ backgroundColor: "#046f0bff", "&:hover": { backgroundColor: "#035a09" }, px: 4 }}>
-            Submit Application
-          </Button>
-          <Button variant="outlined" color="error" size="large" onClick={eduHandleReset}>
-            Reset Form
-          </Button>
+        <Box sx={{ mb: 10 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button type="submit" variant="contained" size="large" sx={{ backgroundColor: "#046f0bff", "&:hover": { backgroundColor: "#035a09" }, px: 4 }}>
+              Submit Application
+            </Button>
+            <Button variant="outlined" color="error" size="large" onClick={eduHandleReset}>
+              Reset Form
+            </Button>
+          </Box>
+          {eduSubmissionMessage && (
+            <Typography
+              sx={{
+                mt: 2,
+                color: eduSubmissionStatus === "success" ? "success.main" : "error.main",
+                fontWeight: 500,
+                backgroundColor: eduSubmissionStatus === "success" ? "#e8f5e9" : "#ffebee"
+              }}
+            >
+              {eduSubmissionMessage}
+            </Typography>
+          )}
         </Box>
       </form>
     </Container>
